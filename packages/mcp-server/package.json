@@ -1,0 +1,29 @@
+{
+  "name": "intervals-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for intervals.icu API - Stage 1 (read-only operations)",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "intervals.icu",
+    "training",
+    "cycling",
+    "running"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

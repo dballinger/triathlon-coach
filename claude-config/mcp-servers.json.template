@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "intervals-icu": {
+      "command": "node",
+      "args": ["/path/to/triathlon-coach/packages/mcp-server/build/index.js"],
+      "env": {
+        "INTERVALS_API_KEY": "your_api_key_here",
+        "INTERVALS_ATHLETE_ID": "i12345"
+      }
+    }
+  }
+}
