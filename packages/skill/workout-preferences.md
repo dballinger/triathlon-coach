@@ -31,4 +31,18 @@ These preferences guide how workouts are structured when using the intervals-wor
 
 ---
 
+## Activity Descriptions
+
+When reviewing completed workouts from intervals.icu, the `description` field may contain freeform notes added by the athlete. This context can inform coaching analysis and recommendations.
+
+**Possible content includes:**
+- Subjective feel (fatigue, energy levels, motivation)
+- External factors (sleep quality, stress, nutrition, weather)
+- Technical observations (equipment issues, pacing strategy)
+- Physical sensations (pain, discomfort, recovery state)
+
+**Usage:** If a description is present, consider it as supplementary context alongside the objective metrics. If absent, proceed with metrics alone.
+
+---
+
 **Note:** These preferences can be modified to suit individual athlete needs or coaching philosophy. The skill will read these preferences when generating workouts.
