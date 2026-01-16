@@ -202,14 +202,19 @@ Set 4 - 8x
 - Distance units can be meters (`mtr`, `meters`) or yards (`yrd`, `yards`, `y`).
 - Targets can use **% Pace** or `Zx Pace`. (On-device support varies by watch; Intervals.icu exports swim pace using appropriate fields.)
 
-Example swim set:
+**Rest intervals:**
+- Use `0` as the target to create a rest interval (wall rest between efforts).
+- Combine time duration with `0`: `- 20s 0` creates a 20-second rest.
+- This is especially useful for structured swim sets with specific rest periods.
+
+Example swim set with rest intervals:
 ```
 Warmup
 - 400mtr Z1 Pace
 
-Main set 8x
-- 50mtr Z4 Pace 90-100rpm
-- 50mtr Z1 Pace
+Main set 10x
+- 200mtr 1:48-1:52/100m Pace
+- 20s 0
 
 Cooldown
 - 200mtr Z2 Pace
@@ -280,14 +285,14 @@ Cooldown
 - 10m Z1 Pace
 ```
 
-### 13.4 Swim feel + build
+### 13.4 Swim intervals with rest
 ```
 Warmup
 - 300mtr Z1 Pace
 
 Main set 6x
 - 100mtr Z3 Pace
-- 50mtr Z1 Pace
+- 15s 0
 
 Cooldown
 - 200mtr Z2 Pace
@@ -312,7 +317,7 @@ Cooldown
 ## 14) Quick cheat‑sheet
 
 - **Step:** `- [prompt] <time|distance> <target or Zx [HR|Pace]> [cadence] [options]`
-- **Targets:** `200w` | `85%` | `70% HR` | `95% LTHR` | `Z3` | `Z2 HR` | `Z3 Pace`
+- **Targets:** `200w` | `85%` | `70% HR` | `95% LTHR` | `Z3` | `Z2 HR` | `Z3 Pace` | `0` (rest)
 - **Absolute pace:** `7:15-7:00 Pace` | `6:30/km Pace` (added Nov 2025)
 - **Cadence:** `90rpm` | `85-95rpm`
 - **Range:** `<low-high><units>` → `80-90%`, `200-240w`, `75-85% Pace`
@@ -345,6 +350,7 @@ Cooldown
 - `- 2m 85-95 rpm 50%` (cadence second, power is primary)
 - `- 30s maxeffort`
 - `- 10m freeride`
+- `- 20s 0` (rest interval)
 - `pool length: 25m`
 
 ---
