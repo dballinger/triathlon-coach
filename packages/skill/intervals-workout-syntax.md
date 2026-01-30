@@ -210,14 +210,15 @@ Set 4 - 8x
 Example swim set with rest intervals:
 ```
 Warmup
-- 400mtr Z1 Pace
+- 200mtr Z1 Pace
+- 20s 0
 
 Main set 10x
 - 200mtr 1:48-1:52/100m Pace
 - 20s 0
 
 Cooldown
-- 200mtr Z2 Pace
+- 200mtr Z1 Pace
 
 pool length: 25m
 ```
