@@ -222,6 +222,10 @@ const DeleteWorkoutSchema = z.object({
   event_id: z.number().describe("The intervals.icu event ID to delete"),
 });
 
+const GetActivityIntervalsSchema = z.object({
+  activity_id: z.string().describe("The intervals.icu activity ID, e.g. 'i136658903' (the 'id' field returned by get_completed_activities)"),
+});
+
 // Initialize the MCP server
 const server = new Server(
   {
@@ -371,6 +375,21 @@ const TOOLS = [
         },
       },
       required: ["event_id"],
+    },
+  },
+  {
+    name: "get_activity_intervals",
+    description:
+      "Drill down into a single completed activity and return its per-interval breakdown (average power, HR, pace, speed, cadence per detected interval/lap). Use this after get_completed_activities when you need to assess execution of a structured session — e.g., the four work intervals of a 4x8 threshold ride. Pass the 'id' value from get_completed_activities as activity_id.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        activity_id: {
+          type: "string",
+          description: "The intervals.icu activity ID, e.g. 'i136658903' (the 'id' field returned by get_completed_activities)",
+        },
+      },
+      required: ["activity_id"],
     },
   },
 ];
@@ -905,6 +924,142 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       };
 
       log("delete_workout final result", result);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } else if (name === "get_activity_intervals") {
+      const parsed = GetActivityIntervalsSchema.parse(args);
+
+      const activity = await intervalsApiRequest(
+        `/activity/${parsed.activity_id}?intervals=true`
+      );
+
+      const formatInterval = (raw: any): any => {
+        const interval: any = {};
+
+        if (raw.id !== undefined && raw.id !== null) interval.id = raw.id;
+        const label = raw.label ?? raw.name ?? raw.type ?? raw.intervalType;
+        if (label) interval.label = label;
+        const classification = raw.intervalType ?? raw.type;
+        if (classification && classification !== interval.label) {
+          interval.classification = classification;
+        }
+
+        const start = raw.start_time ?? raw.startTime ?? raw.start;
+        if (typeof start === "number") interval.start_time_seconds = start;
+
+        const duration = raw.elapsed_time ?? raw.elapsedTime ?? raw.duration ?? raw.moving_time ?? raw.movingTime;
+        if (typeof duration === "number") interval.duration_seconds = duration;
+
+        const distance = raw.distance;
+        if (typeof distance === "number") interval.distance_meters = Math.round(distance);
+
+        // Power
+        const avgWatts = raw.average_watts ?? raw.icu_average_watts ?? raw.avg_watts;
+        const npWatts = raw.weighted_average_watts ?? raw.icu_weighted_avg_watts ?? raw.normalized_power;
+        const intensity = raw.icu_intensity ?? raw.intensity;
+        const maxWatts = raw.max_watts ?? raw.max_power;
+        if (avgWatts || npWatts || maxWatts) {
+          interval.power = { units: "watts" };
+          if (typeof avgWatts === "number") interval.power.average = Math.round(avgWatts);
+          if (typeof npWatts === "number" && npWatts !== avgWatts) interval.power.normalized = Math.round(npWatts);
+          if (typeof maxWatts === "number") interval.power.max = Math.round(maxWatts);
+          if (typeof intensity === "number") interval.power.intensity_percent = Math.round(intensity);
+        }
+
+        // Heart rate
+        const avgHr = raw.average_heartrate ?? raw.avg_hr ?? raw.icu_average_heartrate;
+        const maxHr = raw.max_heartrate ?? raw.max_hr;
+        if (avgHr || maxHr) {
+          interval.heart_rate = { units: "bpm" };
+          if (typeof avgHr === "number") interval.heart_rate.average = Math.round(avgHr);
+          if (typeof maxHr === "number") interval.heart_rate.max = Math.round(maxHr);
+        }
+
+        // Speed (m/s in API; emit km/h, derive from distance/duration if absent)
+        const avgSpeedMs = raw.average_speed ?? raw.avg_speed;
+        const maxSpeedMs = raw.max_speed;
+        const derivedSpeedMs = (typeof distance === "number" && typeof duration === "number" && duration > 0)
+          ? distance / duration
+          : null;
+        const speedMs = typeof avgSpeedMs === "number" ? avgSpeedMs : derivedSpeedMs;
+        if (typeof speedMs === "number" && Number.isFinite(speedMs)) {
+          interval.speed = {
+            average_kmh: Math.round(speedMs * 3.6 * 10) / 10,
+            units: "km/h",
+          };
+          if (typeof maxSpeedMs === "number") {
+            interval.speed.max_kmh = Math.round(maxSpeedMs * 3.6 * 10) / 10;
+          }
+          if (typeof avgSpeedMs !== "number" && derivedSpeedMs !== null) {
+            interval.speed.derived_from = "distance / duration";
+          }
+        }
+
+        // Pace (m/s in API; emit min/km — useful for run/swim, harmless for ride)
+        if (typeof speedMs === "number" && speedMs > 0 && Number.isFinite(speedMs)) {
+          const minPerKm = (1000 / speedMs) / 60;
+          const minutes = Math.floor(minPerKm);
+          const seconds = Math.round((minPerKm - minutes) * 60);
+          interval.pace = {
+            average_min_per_km: `${minutes}:${seconds.toString().padStart(2, "0")}`,
+            units: "min/km",
+          };
+        }
+
+        // Cadence
+        const avgCadence = raw.average_cadence ?? raw.avg_cadence;
+        if (typeof avgCadence === "number") {
+          interval.cadence = {
+            average: Math.round(avgCadence),
+            units: "rpm",
+          };
+        }
+
+        // Elevation
+        if (typeof raw.total_elevation_gain === "number") {
+          interval.elevation_gain_meters = Math.round(raw.total_elevation_gain);
+        }
+
+        // Decoupling per interval (if available)
+        if (typeof raw.decoupling === "number") {
+          interval.aerobic_decoupling_percent = Math.round(raw.decoupling * 10) / 10;
+        }
+
+        // Training load
+        if (typeof raw.training_load === "number") {
+          interval.training_load = raw.training_load;
+        }
+
+        return interval;
+      };
+
+      const intervalsRaw = activity.icu_intervals ?? activity.intervals ?? [];
+      const lapsRaw = activity.icu_laps ?? activity.laps ?? [];
+
+      const result: any = {
+        activity_id: activity.id,
+        name: activity.name,
+        type: activity.type,
+        start_date: activity.start_date_local,
+        intervals: Array.isArray(intervalsRaw) ? intervalsRaw.map(formatInterval) : [],
+      };
+
+      // Surface laps separately when they differ from intervals (different counts is a strong
+      // signal that one is auto-detected and the other is device button-presses).
+      if (Array.isArray(lapsRaw) && lapsRaw.length > 0 && lapsRaw.length !== result.intervals.length) {
+        result.laps = lapsRaw.map(formatInterval);
+      }
+
+      if (result.intervals.length === 0 && !result.laps) {
+        result.note = "No intervals or laps were detected for this activity. The activity may be unstructured (e.g., an easy ride) or interval detection may not have run.";
+      }
 
       return {
         content: [
