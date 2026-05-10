@@ -1,14 +1,16 @@
 # intervals.icu MCP Server
 
-A Model Context Protocol (MCP) server for intervals.icu API integration. This is Stage 1 with read-only operations.
+A Model Context Protocol (MCP) server for intervals.icu API integration.
 
 ## Features
 
-Stage 1 provides three MCP tools for accessing your intervals.icu training data:
+Tools available:
 
 - **get_athlete_settings** - Retrieve athlete profile including FTP, threshold HR, threshold pace, and zones for all configured sports
 - **get_planned_workouts** - List scheduled workouts/events from the calendar with parsed workout structures
 - **get_completed_activities** - List completed activities with summary metrics and zone distribution
+- **get_activity_intervals** - Drill into a single activity and return its per-interval breakdown (avg power/HR/pace/speed/cadence per detected interval)
+- **create_workout** / **update_workout** / **delete_workout** - Manage scheduled workouts on the calendar
 
 ## Setup
 
