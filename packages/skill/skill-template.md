@@ -30,14 +30,32 @@ When creating a workout:
 - Steps start with `- `
 - Blank lines are REQUIRED between blocks (especially before `Nx` repeat markers)
 - NO WHITESPACE before section headers or `Nx` repeat markers - they must start at column 0
-- Each step needs ONE primary target (Power/HR/Pace)
+- Each **workout** uses ONE primary target type (Power, HR, or Pace) — apply it consistently to every step. Do NOT mix metric domains across steps in the same workout (e.g., HR warmup with power intervals is wrong; pick one and stay with it).
 - Cadence is always secondary
+- Strides/pickups sit in their own dedicated block placed BETWEEN the Main set and the Cooldown — never after the cooldown. Strides use the workout's primary target domain (e.g., `- 30s 95-105% LTHR` on an HR-targeted run).
 - Use `m` for minutes, NOT `min`
 - For distances: `km` for kilometers, `mtr` or `meters` for meters (NOT `m` which means minutes!)
 - Nested repeats are NOT supported - manually duplicate blocks instead
 - Absolute pace format: `7:15-7:00/km Pace` (added Nov 2025)
 
 ## Examples
+
+**Easy run with strides (apply LTHR preference, single domain across every step):**
+```
+Warmup
+- 10m 65-70% LTHR
+
+Main
+- 30m 70-80% LTHR
+
+Strides 6x
+- 30s 95-105% LTHR
+- 60s 60-65% LTHR
+
+Cooldown
+- 5m 60-65% LTHR
+```
+Note: every step uses LTHR (one primary domain per workout). Strides are their own block between Main and Cooldown — the cooldown is always the final block.
 
 **Long Run (apply LTHR preference):**
 ```

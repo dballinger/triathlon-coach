@@ -43,7 +43,7 @@
 
 ## 3) Targets & units (primary intensity)
 
-Each step must choose **one** primary intensity domain (Power, Heart Rate, or Pace). You can mix domains across steps (e.g., power-based intervals with HR-based recoveries), but each **single step** has one primary domain.
+Pick **one** primary intensity domain (Power, Heart Rate, or Pace) for the **entire workout** and apply it to every step. Do **not** mix domains across steps within the same workout — intervals.icu requires a single primary target metric per workout. If the warmup uses HR, the main set and cooldown must also use HR; do not switch to Power for the intervals and back to HR for recoveries.
 
 ### Power targets
 - Absolute watts: `200w`, `275 W`
@@ -194,6 +194,11 @@ Set 4 - 8x
 - Distance-based repeats are supported (e.g., `400mtr`, `1km`).
 - For track reps using **Press lap**, consider slight over-distance (e.g., `- 2.05km press lap …`) to avoid GPS ending a lap early.
 
+**Strides / pickups / accelerations:**
+- Strides always sit in their **own dedicated block placed between the Main set and the Cooldown** — never after the cooldown. The cooldown must be the final block of the run.
+- Typical structure: a repeat block such as `Strides 6x` containing one fast step (20–30s) and one easy recovery step (45–60s).
+- Strides must use the workout's primary target domain. On an HR-targeted run, encode the fast step as a high LTHR % range (e.g., `- 30s 95-105% LTHR`) and the recovery as an easy LTHR range — accepting that HR will lag on short reps and the on-watch target is loose. Do **not** switch to power, pace, or `maxeffort` for strides if the rest of the workout is HR-targeted.
+
 ---
 
 ## 10) Swim specifics
@@ -238,7 +243,7 @@ pool length: 25m
 
 - **Always include a primary target** (Power/HR/Pace). Cadence alone is not valid.
 - **Use `m` not `min`.** `1m30` is valid; `1min30` is not.
-- **One domain per step.** Don’t try to target *both* power and HR in the **same** step.
+- **One domain per workout.** Pick Power, HR, or Pace and use it for **every** step in the workout. Don’t mix domains across steps (e.g., HR warmup with power intervals) — intervals.icu requires a single primary target metric per workout.
 - **Ranges & ramps** must match the step’s primary domain units.
 - **Repeats end** at a blank line; place empty lines to control grouping.
 - **Distance vs minutes:** `m` means *minutes* (not metres). Use `mtr`, `meters`, or specify `km`/`mile`.
@@ -312,6 +317,23 @@ Main set
 Cooldown
 - 10m 55-60%
 ```
+
+### 13.6 Easy run with strides (HR-targeted, single domain)
+```
+Warmup
+- 10m 65-70% LTHR
+
+Main
+- 30m 70-80% LTHR
+
+Strides 6x
+- 30s 95-105% LTHR
+- 60s 60-65% LTHR
+
+Cooldown
+- 5m 60-65% LTHR
+```
+Note: every step uses LTHR (single primary domain per workout). Strides are their own block placed between Main and Cooldown — the cooldown is always last.
 
 ---
 
