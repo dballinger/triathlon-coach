@@ -29,7 +29,7 @@ Coaching behaviour is split across three artefacts that together form one produc
 
 1. **`project-instructions.txt`** — pasted into a Claude Desktop project's custom instructions. Defines the coach's persona, threshold terminology (LT/CP), per-sport metric preferences, session-design standards, and how to handle athlete pushback. Read this before changing coaching behaviour — much of what looks like "missing logic" in the code is actually deliberately delegated to the model via these instructions.
 
-2. **`packages/mcp-server/`** — a single-file MCP server (`src/index.ts`) exposing six tools to Claude Desktop: `get_athlete_settings`, `get_planned_workouts`, `get_completed_activities`, `create_workout`, `update_workout`, `delete_workout`. Stdio transport, Basic auth to `https://intervals.icu/api/v1`. Verbose debug logging to `packages/mcp-server/debug.log`.
+2. **`packages/mcp-server/`** — a single-file MCP server (`src/index.ts`) exposing eight tools to Claude Desktop: `get_athlete_settings`, `get_planned_workouts`, `get_completed_activities`, `get_activity_intervals`, `get_wellness`, `create_workout`, `update_workout`, `delete_workout`. Stdio transport, Basic auth to `https://intervals.icu/api/v1`. Verbose debug logging to `packages/mcp-server/debug.log`.
 
 3. **`packages/skill/`** — a Claude Skill that teaches the intervals.icu workout text syntax. `build.sh` concatenates `skill-template.md` + `intervals-workout-syntax.md` + `workout-preferences.md` into a single `skill.md` and zips it. The skill is invoked from inside the project to author the `workout_syntax` argument that the MCP server's `create_workout` accepts.
 

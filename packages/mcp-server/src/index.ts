@@ -226,6 +226,11 @@ const GetActivityIntervalsSchema = z.object({
   activity_id: z.string().describe("The intervals.icu activity ID, e.g. 'i136658903' (the 'id' field returned by get_completed_activities)"),
 });
 
+const GetWellnessSchema = z.object({
+  start_date: z.string().describe("Start date in ISO-8601 format (e.g., 2026-07-16)"),
+  end_date: z.string().describe("End date in ISO-8601 format (e.g., 2026-07-30)"),
+});
+
 // Initialize the MCP server
 const server = new Server(
   {
@@ -390,6 +395,25 @@ const TOOLS = [
         },
       },
       required: ["activity_id"],
+    },
+  },
+  {
+    name: "get_wellness",
+    description:
+      "Retrieve daily wellness and recovery data within a date range: resting heart rate, HRV, sleep, weight, subjective scores (fatigue, soreness, stress, mood, motivation), and fitness/fatigue/form (CTL/ATL). One record per day.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        start_date: {
+          type: "string",
+          description: "Start date in ISO-8601 format (e.g., 2026-07-16)",
+        },
+        end_date: {
+          type: "string",
+          description: "End date in ISO-8601 format (e.g., 2026-07-30)",
+        },
+      },
+      required: ["start_date", "end_date"],
     },
   },
 ];
@@ -1066,6 +1090,112 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: "text",
             text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } else if (name === "get_wellness") {
+      // Validate input
+      const parsed = GetWellnessSchema.parse(args);
+
+      // Get daily wellness records
+      const wellnessRaw = await intervalsApiRequest(
+        `/athlete/${INTERVALS_ATHLETE_ID}/wellness?oldest=${parsed.start_date}&newest=${parsed.end_date}`
+      );
+
+      const records = Array.isArray(wellnessRaw) ? wellnessRaw : [];
+
+      const isNum = (v: any): v is number => typeof v === "number" && !Number.isNaN(v);
+
+      const formattedRecords = records.map((day: any) => {
+        const result: any = {
+          date: day.id,
+        };
+
+        if (isNum(day.restingHR)) {
+          result.resting_heart_rate = {
+            value: day.restingHR,
+            units: "bpm",
+          };
+        }
+
+        if (isNum(day.hrv) || isNum(day.hrvSDNN)) {
+          result.hrv = {};
+          if (isNum(day.hrv)) {
+            result.hrv.rmssd_ms = Math.round(day.hrv * 10) / 10;
+          }
+          if (isNum(day.hrvSDNN)) {
+            result.hrv.sdnn_ms = Math.round(day.hrvSDNN * 10) / 10;
+          }
+        }
+
+        if (isNum(day.sleepSecs) || isNum(day.sleepScore) || isNum(day.sleepQuality)) {
+          result.sleep = {};
+          if (isNum(day.sleepSecs)) {
+            result.sleep.duration_hours = Math.round((day.sleepSecs / 3600) * 10) / 10;
+          }
+          if (isNum(day.sleepScore)) {
+            result.sleep.score = day.sleepScore;
+          }
+          if (isNum(day.sleepQuality)) {
+            result.sleep.quality = day.sleepQuality;
+          }
+        }
+
+        if (isNum(day.weight)) {
+          result.weight_kg = Math.round(day.weight * 10) / 10;
+        }
+
+        // Subjective wellness scores (1 = best, 4 = worst on intervals.icu)
+        const subjective: any = {};
+        for (const field of ["fatigue", "soreness", "stress", "mood", "motivation"]) {
+          if (isNum(day[field])) {
+            subjective[field] = day[field];
+          }
+        }
+        if (Object.keys(subjective).length > 0) {
+          subjective.scale = "1 (best) to 4 (worst)";
+          result.subjective_scores = subjective;
+        }
+
+        if (isNum(day.ctl) || isNum(day.atl)) {
+          result.training_load = {};
+          if (isNum(day.ctl)) {
+            result.training_load.fitness_ctl = Math.round(day.ctl * 10) / 10;
+          }
+          if (isNum(day.atl)) {
+            result.training_load.fatigue_atl = Math.round(day.atl * 10) / 10;
+          }
+          if (isNum(day.ctl) && isNum(day.atl)) {
+            result.training_load.form = Math.round((day.ctl - day.atl) * 10) / 10;
+          }
+        }
+
+        if (isNum(day.spO2)) {
+          result.spo2_percent = Math.round(day.spO2 * 10) / 10;
+        }
+        if (isNum(day.respiration)) {
+          result.respiration_breaths_per_min = Math.round(day.respiration * 10) / 10;
+        }
+        if (isNum(day.systolic) && isNum(day.diastolic)) {
+          result.blood_pressure = {
+            systolic_mmhg: day.systolic,
+            diastolic_mmhg: day.diastolic,
+          };
+        }
+
+        return result;
+      });
+
+      const response: any = { wellness: formattedRecords };
+      if (formattedRecords.length === 0) {
+        response.note = "No wellness records found for this date range. The athlete may not have recorded wellness data, or the range may be outside their history.";
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(response, null, 2),
           },
         ],
       };

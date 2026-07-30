@@ -34,6 +34,7 @@ The coach operates at multiple levels:
 - Current zones, FTP, threshold HR, threshold pace
 - Planned workouts on your calendar
 - Completed activities with full metrics (power, HR, zones, training load)
+- Daily wellness and recovery data (resting HR, HRV, sleep, fitness/fatigue/form)
 
 **Manage your calendar:**
 - Create new workouts with full structure
