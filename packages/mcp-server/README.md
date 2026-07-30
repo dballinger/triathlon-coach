@@ -10,6 +10,7 @@ Tools available:
 - **get_planned_workouts** - List scheduled workouts/events from the calendar with parsed workout structures
 - **get_completed_activities** - List completed activities with summary metrics and zone distribution
 - **get_activity_intervals** - Drill into a single activity and return its per-interval breakdown (avg power/HR/pace/speed/cadence per detected interval)
+- **get_wellness** - Retrieve daily wellness and recovery data (resting HR, HRV, sleep, weight, subjective scores, CTL/ATL)
 - **create_workout** / **update_workout** / **delete_workout** - Manage scheduled workouts on the calendar
 
 ## Setup
@@ -141,6 +142,47 @@ Lists completed activities within a date range.
   weighted_average_watts: 225,
   training_load: 95,
   power_zone_times: [300, 600, 1200, ...]
+}
+```
+
+### get_activity_intervals
+
+Drills into a single completed activity and returns its per-interval breakdown.
+
+**Parameters**:
+- `activity_id` (string, required): The intervals.icu activity ID, e.g. "i136658903" (the `id` field returned by `get_completed_activities`)
+
+**Returns**: The activity's detected intervals (and laps, when they differ) with per-interval averages:
+- Duration and distance
+- Average/max power, HR, cadence
+- Speed and pace
+- Aerobic decoupling and training load per interval
+
+### get_wellness
+
+Retrieves daily wellness and recovery records within a date range.
+
+**Parameters**:
+- `start_date` (string, required): ISO-8601 format (e.g., "2026-07-16")
+- `end_date` (string, required): ISO-8601 format (e.g., "2026-07-30")
+
+**Returns**: One record per day (fields included only when recorded):
+- Resting heart rate (bpm)
+- HRV (rMSSD, and SDNN when available, in ms)
+- Sleep duration (hours), score, and quality
+- Weight (kg)
+- Subjective scores: fatigue, soreness, stress, mood, motivation (1 = best, 4 = worst)
+- Training load: fitness (CTL), fatigue (ATL), form (CTL − ATL)
+- SpO₂, respiration rate, blood pressure when recorded
+
+**Example**:
+```typescript
+{
+  date: "2026-07-29",
+  resting_heart_rate: { value: 47, units: "bpm" },
+  hrv: { rmssd_ms: 68.4 },
+  sleep: { duration_hours: 7.5, score: 82 },
+  training_load: { fitness_ctl: 72.1, fatigue_atl: 85.3, form: -13.2 }
 }
 ```
 
