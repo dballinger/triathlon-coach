@@ -48,7 +48,8 @@ When generating intervals.icu workout text — whether for the skill, examples, 
 - `m` means minutes; **never** use it for metres. Use `mtr` or `meters`.
 - Section headers and `Nx` repeat markers must start at column 0 (no leading whitespace).
 - Blank lines are required between blocks, especially before `Nx` markers.
-- One primary target per step (Power **or** HR **or** Pace). Cadence is always secondary.
+- One primary target per **workout** (Power **or** HR **or** Pace) — apply it to every step. Don't mix domains across steps in the same workout. Cadence is always secondary.
+- Strides/pickups go in their own block placed **between Main and Cooldown** — never after the cooldown. Use the workout's primary target domain (e.g., high LTHR % on an HR-targeted run).
 - Nested repeats are not supported — duplicate the inner block manually.
 
 Full reference: `packages/skill/intervals-workout-syntax.md`. Per-sport target-type defaults: `packages/skill/workout-preferences.md`.
