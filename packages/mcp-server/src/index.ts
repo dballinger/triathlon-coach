@@ -42,11 +42,10 @@ initLog();
 const INTERVALS_API_KEY = process.env.INTERVALS_API_KEY;
 const INTERVALS_ATHLETE_ID = process.env.INTERVALS_ATHLETE_ID;
 
-// Log environment variables (sanitized)
-log("Environment variables loaded:", {
-  INTERVALS_API_KEY: INTERVALS_API_KEY ? `${INTERVALS_API_KEY.substring(0, 4)}...${INTERVALS_API_KEY.substring(INTERVALS_API_KEY.length - 4)}` : "NOT SET",
-  INTERVALS_ATHLETE_ID: INTERVALS_ATHLETE_ID || "NOT SET",
-  INTERVALS_API_KEY_LENGTH: INTERVALS_API_KEY?.length || 0,
+// Record presence only; never log credentials or derived authentication data.
+log("Environment configuration loaded:", {
+  api_key_configured: Boolean(INTERVALS_API_KEY),
+  athlete_id_configured: Boolean(INTERVALS_ATHLETE_ID),
 });
 
 if (!INTERVALS_API_KEY) {
@@ -102,9 +101,6 @@ async function intervalsApiRequest(
     url,
     method,
     endpoint,
-    auth_string_length: authString.length,
-    auth_header_length: authHeader.length,
-    base64_decoded_preview: authString.substring(0, 10) + "...",
     hasBody: body !== undefined,
   });
 
